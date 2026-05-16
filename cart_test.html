@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Test - VK Chekku Ennai</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .cart-btn { background: #ecc545; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        .add-to-cart-btn { background: #ecc545; color: white; padding: 8px 12px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Cart Functionality Test</h1>
+
+    <div class="test-section">
+        <h2>Navigation Cart Button</h2>
+        <button class="cart-btn" onclick="toggleCart()">
+            <i class="uil uil-shopping-cart"></i> Cart
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>Add to Cart Buttons</h2>
+        <button class="add-to-cart-btn" onclick="addToCart('Marachekku Peanut Oil', 1000)">Add Marachekku Peanut Oil</button>
+        <button class="add-to-cart-btn" onclick="addToCart('Coconut Oil', 2000)">Add Coconut Oil</button>
+        <button class="add-to-cart-btn" onclick="addToCart('Cold Pressed Groundnut Oil', 5000)">Add Cold Pressed Groundnut Oil</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Cart Status</h2>
+        <p>Items in cart: <span id="cart-count">0</span></p>
+        <p>Total: ₹<span id="cart-total">0</span></p>
+    </div>
+
+    <!-- Cart Panel -->
+    <div id="cart-panel" class="cart-panel" style="position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; transition: right 0.3s ease;">
+        <div class="cart-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #ecc545; color: white;">
+            <h3 style="margin: 0;">Shopping Cart</h3>
+            <button id="close-cart" class="close-btn" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div id="cart-items" class="cart-items" style="flex: 1; padding: 20px; overflow-y: auto;">
+            <!-- Cart items will be added here -->
+        </div>
+        <div class="cart-total" style="padding: 15px 20px; background: #f9f9f9; border-top: 1px solid #eee;">
+            <p style="margin: 0; font-weight: 600;">Total: ₹<span id="total-price">0</span></p>
+        </div>
+        <button id="place-order" class="place-order-btn" style="margin: 20px; padding: 12px; background: #ecc545; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; width: calc(100% - 40px);">Place Order</button>
+    </div>
+
+    <script>
+        // Cart functionality
+        let cart = [];
+        let total = 0;
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            total += price;
+            updateCart();
+            updateCartStatus();
+            alert(`${name} added to cart!`);
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+
+            // Group items by name
+            const itemMap = {};
+            cart.forEach(item => {
+                if (itemMap[item.name]) {
+                    itemMap[item.name].quantity += 1;
+                } else {
+                    itemMap[item.name] = { price: item.price, quantity: 1 };
+                }
+            });
+
+            for (const [name, details] of Object.entries(itemMap)) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item';
+                itemDiv.innerHTML = `<span>${name} (x${details.quantity})</span><span>₹${details.price * details.quantity}</span>`;
+                itemDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;';
+                cartItems.appendChild(itemDiv);
+            }
+            document.getElementById('total-price').textContent = total;
+        }
+
+        function updateCartStatus() {
+            document.getElementById('cart-count').textContent = cart.length;
+            document.getElementById('cart-total').textContent = total;
+        }
+
+        function toggleCart() {
+            const panel = document.getElementById('cart-panel');
+            if (panel) {
+                panel.classList.toggle('open');
+                if (panel.classList.contains('open')) {
+                    panel.style.right = '0';
+                } else {
+                    panel.style.right = '-400px';
+                }
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('close-cart').addEventListener('click', toggleCart);
+            document.getElementById('place-order').addEventListener('click', () => {
+                if (cart.length === 0) {
+                    alert('Your cart is empty!');
+                } else {
+                    alert('Proceeding to checkout...');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

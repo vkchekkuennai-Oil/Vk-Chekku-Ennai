@@ -147,12 +147,28 @@ function addToCart(name, price) {
     cart.push({ name, price });
     total += price;
     updateCart();
-    alert(`${name} added to cart!`);
+    showNotification(`✅ ${name} added to cart!`);
+}
+
+function removeFromCart(itemName) {
+    const index = cart.findIndex(item => item.name === itemName);
+    if (index > -1) {
+        total -= cart[index].price;
+        cart.splice(index, 1);
+        updateCart();
+        showNotification(`❌ ${itemName} removed from cart`);
+    }
 }
 
 function updateCart() {
     const cartItems = document.getElementById('cart-items');
     cartItems.innerHTML = '';
+
+    if (cart.length === 0) {
+        cartItems.innerHTML = `<div class="cart-empty">🛒 Your cart is empty!</div>`;
+        updateCartBadge();
+        return;
+    }
 
     // Group items by name
     const itemMap = {};
@@ -167,10 +183,53 @@ function updateCart() {
     for (const [name, details] of Object.entries(itemMap)) {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'cart-item';
-        itemDiv.innerHTML = `<span>${name} (x${details.quantity})</span><span>₹${details.price * details.quantity}</span>`;
+        itemDiv.innerHTML = `
+            <div style="flex: 1;">
+                <span style="font-weight: 600; color: #2d2d2d;">${name}</span>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                    Qty: ${details.quantity} × ₹${details.price} = <strong>₹${details.price * details.quantity}</strong>
+                </div>
+            </div>
+            <button onclick="removeFromCart('${name}')" style="background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.3s;">Remove</button>
+        `;
         cartItems.appendChild(itemDiv);
     }
     document.getElementById('total-price').textContent = total;
+    updateCartBadge();
+}
+
+function updateCartBadge() {
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        badge.textContent = cart.length;
+        badge.style.display = cart.length > 0 ? 'flex' : 'none';
+    }
+}
+
+function showNotification(message) {
+    // Remove existing notification if any
+    const existing = document.getElementById('cart-notification');
+    if (existing) existing.remove();
+
+    const notification = document.createElement('div');
+    notification.id = 'cart-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        z-index: 999;
+        font-weight: 600;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.remove(), 3000);
 }
 
 function toggleCart() {
@@ -180,6 +239,12 @@ function toggleCart() {
     }
 }
 
+function clearCart() {
+    cart = [];
+    total = 0;
+    updateCart();
+    showNotification('🗑️ Cart cleared!');
+}
 document.addEventListener('DOMContentLoaded', function () {
     // Cart event listeners
     document.getElementById('close-cart').addEventListener('click', toggleCart);
@@ -250,6 +315,7 @@ function submitCheckout(event) {
                     generateBillWithInvoice(data.invoice_number, data.order_date, checkoutData, data.order_id);
                     closeCheckout();
                     document.getElementById('checkout-form').reset();
+                    clearCart();
                     alert('Order placed successfully! Invoice: ' + data.invoice_number);
                 } else if (/invalid request method|invalid json data|failed to process order/i.test(data.message)) {
                     handleOfflineOrder(checkoutData, data.message);
@@ -272,6 +338,7 @@ function handleOfflineOrder(checkoutData, reason) {
     generateBillWithInvoice(invoiceNumber, orderDate, checkoutData, orderId);
     closeCheckout();
     document.getElementById('checkout-form').reset();
+    clearCart();
     alert('Order placed successfully! Backend unavailable, so the data is not saved to a database.' + (reason ? ' (' + reason + ')' : ''));
 }
 
@@ -291,7 +358,7 @@ function generateBillWithInvoice(invoiceNumber, orderDate, checkoutData, orderId
         name: "VK Chekku Ennai",
         address: "Traditional Oil Manufacturing, Tamil Nadu, India",
         contact: "+91 9025792835",
-        email: "sabarisundaram16@gmail.com",
+        email: "vkchekkuennai@gmail.com",
         gst: "GSTIN: 33XXXXXXXXXX" // Replace with actual GST number
     };
 
